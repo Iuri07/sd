@@ -12,8 +12,9 @@ int main(int argc, char *argv[])
 { 
     int socket_fd, sock; 
     int i=0, lim; 
-    struct sockaddr_in address; 
-    int addrlen = sizeof(address); 
+    struct sockaddr_in address, client_address; 
+    //int addrlen = sizeof(address); 
+    int client_addrlen = sizeof(client_address); 
     char buffer[MSG_SIZE]; 
     char msg[MSG_SIZE];
 
@@ -25,9 +26,14 @@ int main(int argc, char *argv[])
     lim = atoi(argv[1]);
     // Creating socket file descriptor 
     if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) { 
-        perror("socket failed"); 
+        printf("Socket failed"); 
         exit(1); 
     } 
+
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0){
+        printf("Setsockopt failed");
+        exit(1);
+    }
     address.sin_family = AF_INET; 
     address.sin_addr.s_addr = INADDR_ANY; 
     address.sin_port = htons( PORT ); 
@@ -42,8 +48,8 @@ int main(int argc, char *argv[])
         exit(1); 
     } 
 
-    if ((sock = accept(socket_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0){ 
-        printf("Accept error\n"); 
+    if ((sock = accept(socket_fd, (struct sockaddr *)&client_address, (socklen_t*)&client_addrlen))<0){ 
+        printf("Accept error\n");   
         exit(1); 
     }
     

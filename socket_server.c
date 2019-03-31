@@ -33,17 +33,17 @@ int main(int argc, char *argv[])
     address.sin_port = htons( PORT ); 
        
     if (bind(socket_fd, (struct sockaddr *)&address, sizeof(address))<0){ 
-        printf("Error on bind\n"); 
+        printf("Binding error\n"); 
         exit(1); 
     } 
 
     if (listen(socket_fd, 5) < 0){ 
-        printf("Error on listen\n"); 
+        printf("Listening error\n"); 
         exit(1); 
     } 
 
     if ((sock = accept(socket_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))<0){ 
-        printf("Error on accept\n"); 
+        printf("Accept error\n"); 
         exit(1); 
     }
     

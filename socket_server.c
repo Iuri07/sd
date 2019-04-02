@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
     } 
 
     //Reuse address and port; Helps with binding problem
-    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0){
+    if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &(int){ 1 }, sizeof(int)) < 0){
         printf("Setsockopt failed");
         exit(1);
     }
@@ -52,6 +52,8 @@ int main(int argc, char *argv[])
         printf("Accept error\n");   
         exit(1); 
     }
+
+    //Producer
     
     srand(time(NULL));
     for(int n = 1; i < lim; n = n + rand()%100){

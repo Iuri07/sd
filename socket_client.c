@@ -19,7 +19,7 @@ int isPrime(int number){
 int main(int argc, char *argv[]) 
 { 
     int sock = 0, result; 
-    struct sockaddr_in serv_addr;  
+    struct sockaddr_in server_address;  
     char buffer[MSG_SIZE]; 
     char msg[MSG_SIZE];
     char *server_host;
@@ -36,23 +36,24 @@ int main(int argc, char *argv[])
 
     server_host = argv[1];
    
-    memset(&serv_addr, '0', sizeof(serv_addr)); 
+    memset(&server_address, '0', sizeof(server_address)); 
    
-    serv_addr.sin_family = AF_INET; 
-    serv_addr.sin_port = htons( PORT ); 
+    server_address.sin_family = AF_INET; 
+    server_address.sin_port = htons( PORT ); 
     
     //convert IPv4 address from text to binary form; Also validates IP
-    if(inet_pton(AF_INET, server_host, &serv_addr.sin_addr)<=0){ 
+    if(inet_pton(AF_INET, server_host, &server_address.sin_addr)<=0){ 
        printf("\nInvalid address\n"); 
        return -1; 
     } 
     
     //connect to server
-    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0){ 
+    if (connect(sock, (struct sockaddr *)&server_address, sizeof(server_address)) < 0){ 
         printf("\nConnection error\n"); 
         return -1; 
     } 
 
+    //Consumer
     while(1){
         recv(sock , buffer, MSG_SIZE, 0); 
         printf("Client RECEIVED: %s\n", buffer);

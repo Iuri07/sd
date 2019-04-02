@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     server_address.sin_family = AF_INET; 
     server_address.sin_addr.s_addr = INADDR_ANY; 
     server_address.sin_port = htons( PORT ); 
-       
+
     if (bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address))<0){ 
         printf("Binding error\n"); 
         exit(1); 
@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
     //Producer
     
     srand(time(NULL));
-    for(int n = 1; i < lim; n = n + rand()%100){
+    for(int n = 1; i < lim; n = n + rand()%99 + 1){
         sprintf(msg,"%d",n);
         send(sock , msg , MSG_SIZE, 0);
         recv(sock , buffer, MSG_SIZE, 0); 
@@ -66,8 +66,6 @@ int main(int argc, char *argv[])
     sprintf(msg,"%d", 0);
     send(sock , msg , MSG_SIZE, 0);   
     printf("Server SENT: %s\n", msg);  
-
-  
 
     return 0; 
 } 

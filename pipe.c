@@ -34,7 +34,7 @@ void producer(int fd_w, int iterations){
     char msg[MSG_SIZE];
     int i=0;
     srand (time(NULL));
-    for(int n = 1; i < iterations; n = n + rand()%100){
+    for(int n = 1; i < iterations; n = n + rand()%99 + 1){
         sprintf(msg, "%d", n);
         write(fd_w, msg, sizeof msg);
         i++;

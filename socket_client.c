@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         recv(sock , buffer, MSG_SIZE, 0); 
         printf("Client RECEIVED: %s\n", buffer);
         if(*buffer == '0'){
-            printf("Closing socket.\n");  
+            printf("Closing client.\n");  
             break;
         }
         result  = atoi(buffer);

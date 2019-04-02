@@ -5,7 +5,7 @@
 #include<sys/wait.h>
 #include<math.h>
 #include <time.h>
-#define MSG_SIZE 11
+#define MSG_SIZE 10
 
 int isPrime(int number){
     for(int i = 2; i <= sqrt(number); i ++){
@@ -30,11 +30,11 @@ void consumer(int fd_r){
     }
 }
 
-void producer(int fd_w, int max){
+void producer(int fd_w, int iterations){
     char msg[MSG_SIZE];
     int i=0;
     srand (time(NULL));
-    for(int n = 1; i < max; n = n + rand()%100){
+    for(int n = 1; i < iterations; n = n + rand()%100){
         sprintf(msg, "%d", n);
         write(fd_w, msg, sizeof msg);
         i++;
@@ -46,14 +46,14 @@ void producer(int fd_w, int max){
 }
 
 int main(int argc, char *argv[]){
-    int fd[2], max;
+    int fd[2], iterations;
     pid_t pid;
 
     if(argc != 2){
-        printf("Wrong number of args\n  pipe $n\n");
+        printf("Usage: %s $iterations\n", argv[0]);
         exit(1);
     }
-    max = atoi(argv[1]);
+    iterations = atoi(argv[1]);
 
     if(pipe(fd) == -1){
         printf("Error creating pipe\n");
@@ -67,7 +67,7 @@ int main(int argc, char *argv[]){
     }else if(pid == 0){ //child
         consumer(fd[0]);
     }else{ // parent
-        producer(fd[1], max);
+        producer(fd[1], iterations);
     }
 
 }

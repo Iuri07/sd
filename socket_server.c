@@ -6,39 +6,39 @@
 #include <string.h> 
 #include <time.h> 
 #define PORT 8080 
-#define MSG_SIZE 11
+#define MSG_SIZE 10
 
 int main(int argc, char *argv[]) 
 { 
     int socket_fd, sock; 
     int i=0, lim; 
-    struct sockaddr_in address, client_address; 
-    //int addrlen = sizeof(address); 
+    struct sockaddr_in server_address, client_address; 
     int client_addrlen = sizeof(client_address); 
     char buffer[MSG_SIZE]; 
     char msg[MSG_SIZE];
 
     if(argc != 2){
-        printf("Wrong number of args\n");
+        printf("Usage: %s $iterations\n", argv[0]);
         exit(1);
     }
        
     lim = atoi(argv[1]);
-    // Creating socket file descriptor 
+    // Create socket file descriptor 
     if ((socket_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) { 
         printf("Socket failed"); 
         exit(1); 
     } 
 
+    //Reuse address and port; Helps with binding problem
     if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0){
         printf("Setsockopt failed");
         exit(1);
     }
-    address.sin_family = AF_INET; 
-    address.sin_addr.s_addr = INADDR_ANY; 
-    address.sin_port = htons( PORT ); 
+    server_address.sin_family = AF_INET; 
+    server_address.sin_addr.s_addr = INADDR_ANY; 
+    server_address.sin_port = htons( PORT ); 
        
-    if (bind(socket_fd, (struct sockaddr *)&address, sizeof(address))<0){ 
+    if (bind(socket_fd, (struct sockaddr *)&server_address, sizeof(server_address))<0){ 
         printf("Binding error\n"); 
         exit(1); 
     } 
@@ -56,8 +56,8 @@ int main(int argc, char *argv[])
     srand(time(NULL));
     for(int n = 1; i < lim; n = n + rand()%100){
         sprintf(msg,"%d",n);
-        send(sock , msg , MSG_SIZE, 0); 
-        recv( sock , buffer, MSG_SIZE, 0); 
+        send(sock , msg , MSG_SIZE, 0);
+        recv(sock , buffer, MSG_SIZE, 0); 
         printf("%d - %s\n", i+1,buffer );
         i++;
     }

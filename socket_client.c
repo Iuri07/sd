@@ -39,6 +39,7 @@ int main(int argc, char *argv[])
     memset(&serv_addr, '0', sizeof(serv_addr)); 
    
     serv_addr.sin_family = AF_INET; 
+    serv_addr.sin_port = htons( PORT ); 
     
     //convert IPv4 address from text to binary form; Also validates IP
     if(inet_pton(AF_INET, server_host, &serv_addr.sin_addr)<=0){ 

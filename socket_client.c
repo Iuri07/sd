@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
             break;
         }
         result  = atoi(buffer);
-        sprintf(msg,"%d%s", result,isPrime(result) ? " *":"");
+        sprintf(msg,"%s",isPrime(result) ? " *":"");
         send(sock , msg, MSG_SIZE, 0);
     } 
 } 

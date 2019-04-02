@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
         sprintf(msg,"%d",n);
         send(sock , msg , MSG_SIZE, 0);
         recv(sock , buffer, MSG_SIZE, 0); 
-        printf("%d - %s\n", i+1,buffer );
+        printf("%d - %d%s\n", i+1,n,buffer );
         i++;
     }
     sprintf(msg,"%d", 0);

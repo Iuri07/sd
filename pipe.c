@@ -21,15 +21,16 @@ void consumer(int fd_r){
     char buf[MSG_SIZE];
     int i = 1;
     while(1){
-        read(fd_r, &buf, MSG_SIZE);
-        int result = atoi(buf);
-        if(!strcmp(buf, "0")){
-            printf("Closing reading pipe\n");
-            close(fd_r);
-            return;
+        if(read(fd_r, &buf, MSG_SIZE) > 0){
+            int result = atoi(buf);
+            if(!strcmp(buf, "0")){
+                printf("Closing reading pipe\n");
+                close(fd_r);
+                return;
+            }
+            printf("%d - %d%s\n", i,result, isPrime(result) ? " *" : "");
+            i++;
         }
-        printf("%d - %d%s\n", i,result, isPrime(result) ? " *" : "");
-        i++;
     }
 }
 

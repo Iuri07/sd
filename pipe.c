@@ -5,6 +5,8 @@
 #include<sys/wait.h>
 #include<math.h>
 #include <time.h>
+#include <string.h> 
+
 #define MSG_SIZE 10
 
 int isPrime(int number){
@@ -18,9 +20,10 @@ int isPrime(int number){
 void consumer(int fd_r){
     char buf[MSG_SIZE];
     int i = 1;
-    while(read(fd_r, &buf, MSG_SIZE) > 0){
+    while(1){
+        read(fd_r, &buf, MSG_SIZE);
         int result = atoi(buf);
-        if(*buf == '0'){
+        if(!strcmp(buf, "0")){
             printf("Closing reading pipe\n");
             close(fd_r);
             return;

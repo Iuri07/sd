@@ -57,7 +57,7 @@ int main(int argc, char *argv[])
     while(1){
         recv(sock , buffer, MSG_SIZE, 0); 
         printf("Client RECEIVED: %s\n", buffer);
-        if(*buffer == '0'){
+        if(!strcmp(buffer, "0")){
             printf("Closing client.\n");  
             break;
         }

@@ -5,11 +5,12 @@
 #include <time.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <string.h>
 
-#define BUFFER_SIZE 1
+#define BUFFER_SIZE 32
 #define M 100000
 
-sem_t mutex, empty, full, counter;
+sem_t mutex, empty, full, counter, producer_counter;
 int list[BUFFER_SIZE] = {0}, count = 0;
 
 int isPrime(int number){
@@ -35,12 +36,12 @@ int get_full(int *list){
     return -1;
 }
 
-void* producer(void* arg) { 
+void* producer(void* arg) {
     srand(time(NULL));
     while(1){
         sem_wait(&empty); 
         sem_wait(&mutex); 
-        int errno = sem_trywait(&counter); 
+        int errno = sem_trywait(&producer_counter); 
         if(errno < 0){
             sem_post(&mutex);
             sem_post(&empty);
@@ -50,15 +51,15 @@ void* producer(void* arg) {
         int empty = get_empty(list);
         if(empty >= 0)
             list[empty] = rand() % 10000000 + 1;
-        sem_post(&counter);
         sem_post(&mutex);
         sem_post(&full);
     }
-    printf("Exiting producer\n");
+    // printf("Exiting producer\n");
 } 
 
 void* consumer(void* arg){
     while(1){ 
+        char result[20]; 
         int number; 
         sem_wait(&full); 
         sem_wait(&mutex); 
@@ -76,10 +77,11 @@ void* consumer(void* arg){
             count++;
         }
         sem_post(&mutex); 
-        sem_post(&empty); 
-        printf("%d%s\n", number, isPrime(number) ? " é primo" : "");
+        sem_post(&empty);
+        // sprintf(result,"%d%s\n", number, isPrime(number) ? " é primo" : "");
+        // write(1,result,strlen(result));
     }
-    printf("Exiting consumer\n");
+    // printf("Exiting consumer\n");
 } 
 
 int main(int argc, char *argv[]){
@@ -88,7 +90,7 @@ int main(int argc, char *argv[]){
     
     for(int i=0; i < 9; i++){
         char file[30];
-        sprintf(file, "results/n%d-np%d-nc%d.txt" ,BUFFER_SIZE,nthreads_producer[i], nthreads_consumer[i]);
+        sprintf(file, "results/4n%d-np%d-nc%d.txt" ,BUFFER_SIZE,nthreads_producer[i], nthreads_consumer[i]);
         
         FILE *fptr = fopen(file, "w");
         if (fptr == NULL){ 
@@ -103,6 +105,7 @@ int main(int argc, char *argv[]){
             sem_init(&mutex, 0, 1); 
             sem_init(&empty, 0, BUFFER_SIZE); 
             sem_init(&counter, 0, M); 
+            sem_init(&producer_counter, 0, M); 
             sem_init(&full, 0, 0); 
             pthread_t producers[nthreads_producer[i]], consumers[nthreads_consumer[i]]; 
 

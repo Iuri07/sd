@@ -7,14 +7,20 @@
 #include <semaphore.h>
 #include <string.h>
 
-#define BUFFER_SIZE 32
+#define BUFFER_SIZE 2
 #define M 100000
 
-sem_t mutex, empty, full, counter, producer_counter;
-int list[BUFFER_SIZE] = {0}, count = 0;
+#define BILLION  1E9
+
+sem_t mutex, empty, full, consumer_count, producer_count;
+int list[BUFFER_SIZE] = {0};
 
 int isPrime(int number){
-    for(int i = 2; i <= sqrt(number); i ++){
+    if (number <= 1) 
+        return 0;
+    if (number % 2 == 0 && number > 2) 
+        return 0;
+    for(int i = 3; i < sqrt(number); i +=2){
         if(number % i == 0)
             return 0;
     }
@@ -37,79 +43,71 @@ int get_full(int *list){
 }
 
 void* producer(void* arg) {
-    srand(time(NULL));
     while(1){
-        sem_wait(&empty); 
-        sem_wait(&mutex); 
-        int errno = sem_trywait(&producer_counter); 
+        int errno = sem_trywait(&producer_count); 
         if(errno < 0){
-            sem_post(&mutex);
-            sem_post(&empty);
-            sem_post(&full);
             break;
+        }else{
+            int random = rand() % 10000000 + 1;
+            sem_wait(&empty); 
+            sem_wait(&mutex); 
+            int empty = get_empty(list);
+            if(empty >= 0)
+                list[empty] = random;
+            sem_post(&mutex);
+            sem_post(&full);
         }
-        int empty = get_empty(list);
-        if(empty >= 0)
-            list[empty] = rand() % 10000000 + 1;
-        sem_post(&mutex);
-        sem_post(&full);
     }
-    // printf("Exiting producer\n");
+    return NULL;
 } 
 
 void* consumer(void* arg){
+    int number = 0; 
     while(1){ 
-        char result[20]; 
-        int number; 
-        sem_wait(&full); 
-        sem_wait(&mutex); 
-        int errno = sem_trywait(&counter); 
+        int errno = sem_trywait(&consumer_count); 
         if(errno < 0){
-            sem_post(&mutex); 
-            sem_post(&empty); 
-            sem_post(&full);
             break;
+        }else {
+            sem_wait(&full); 
+            sem_wait(&mutex); 
+            int full = get_full(list);
+            if(full >= 0){
+                number = list[full];
+                list[full] = 0;
+            }
+            sem_post(&mutex); 
+            sem_post(&empty);
+            if(number > 0){
+                int prime = isPrime(number);
+                // if(prime) printf("primo: %d\n", number);
+                number = 0;
+            }
         }
-        int full = get_full(list);
-        if(full >= 0){
-            number = list[full];
-            list[full] = 0;
-            count++;
-        }
-        sem_post(&mutex); 
-        sem_post(&empty);
-        // sprintf(result,"%d%s\n", number, isPrime(number) ? " é primo" : "");
-        // write(1,result,strlen(result));
     }
-    // printf("Exiting consumer\n");
+    return NULL;
 } 
 
 int main(int argc, char *argv[]){
     int nthreads_consumer[9] = {1,2,4,8,16,1,1,1,1};
     int nthreads_producer[9] = {1,1,1,1,1,2,4,8,16};
+    srand(time(NULL));
     
     for(int i=0; i < 9; i++){
-        char file[30];
-        sprintf(file, "results/4n%d-np%d-nc%d.txt" ,BUFFER_SIZE,nthreads_producer[i], nthreads_consumer[i]);
+        double total_time = 0.0;
         
-        FILE *fptr = fopen(file, "w");
-        if (fptr == NULL){ 
-            printf("Error opening file"); 
-            return 0; 
-        } 
-
-
-    
         for(int j = 0; j < 10; j++){
-            printf("%d\n", j);
             sem_init(&mutex, 0, 1); 
-            sem_init(&empty, 0, BUFFER_SIZE); 
-            sem_init(&counter, 0, M); 
-            sem_init(&producer_counter, 0, M); 
             sem_init(&full, 0, 0); 
+            sem_init(&empty, 0, BUFFER_SIZE); 
+            sem_init(&consumer_count, 0, M); 
+            sem_init(&producer_count, 0, M); 
+
+
             pthread_t producers[nthreads_producer[i]], consumers[nthreads_consumer[i]]; 
 
-            clock_t begin = clock();
+            struct timespec start, stop;
+            // clock_t begin = clock();
+            clock_gettime( CLOCK_MONOTONIC, &start);
 
             for(int k = 0; k < nthreads_consumer[i]; k++)
                 pthread_create(&consumers[k],NULL,consumer,NULL);
@@ -122,14 +120,15 @@ int main(int argc, char *argv[]){
 
             sem_destroy(&mutex); 
             sem_destroy(&full); 
-            sem_destroy(&counter); 
-            sem_destroy(&empty); 
-            clock_t end = clock();
-            double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-            fprintf(fptr,"%f\n", time_spent);
-            printf("tempo: %f\n", time_spent);
+            sem_destroy(&consumer_count); 
+            sem_destroy(&producer_count); 
+            sem_destroy(&empty);
+            // clock_t end = clock();
+            clock_gettime( CLOCK_MONOTONIC, &stop);
+            double time_spent = ( stop.tv_sec - start.tv_sec ) + (( stop.tv_nsec - start.tv_nsec ) / BILLION);
+            total_time += time_spent;
         }
-        fclose(fptr);
+        printf("%lf\n", total_time/10);
     }
     return 0; 
 }

@@ -20,21 +20,22 @@ int isPrime(int number){
         return 0;
     if (number % 2 == 0 && number > 2) 
         return 0;
-    for(int i = 3; i < sqrt(number); i +=2){
+    for(int i = 3; i < sqrt(number); i +=2){ //Checks odd numbers unti sqrt(n)
         if(number % i == 0)
             return 0;
     }
     return 1;
 }
 
-
-int get_empty(int *list){
+//return empty position
+int get_empty(int *list){ 
     for(int i = 0; i < BUFFER_SIZE; i++){
         if(list[i] == 0) return i;
     }
     return -1;
 }
 
+//return full position
 int get_full(int *list){
     for(int i = 0; i < BUFFER_SIZE; i++){
         if(list[i] != 0) return i;
@@ -48,7 +49,7 @@ void* producer(void* arg) {
         if(errno < 0){
             break;
         }else{
-            int random = rand() % 10000000 + 1;
+            int random = rand() % 10000000 + 1; //generate random [1,10000000]
             sem_wait(&empty); 
             sem_wait(&mutex); 
             int empty = get_empty(list);
@@ -78,7 +79,7 @@ void* consumer(void* arg){
             sem_post(&mutex); 
             sem_post(&empty);
             if(number > 0){
-                int prime = isPrime(number);
+                int prime = isPrime(number); //check if number is prime
                 // if(prime) printf("primo: %d\n", number);
                 number = 0;
             }
@@ -96,6 +97,7 @@ int main(int argc, char *argv[]){
         double total_time = 0.0;
         
         for(int j = 0; j < 10; j++){
+            //INITIALIZE SEMAPHORES
             sem_init(&mutex, 0, 1); 
             sem_init(&full, 0, 0); 
             sem_init(&empty, 0, BUFFER_SIZE); 
@@ -106,9 +108,10 @@ int main(int argc, char *argv[]){
             pthread_t producers[nthreads_producer[i]], consumers[nthreads_consumer[i]]; 
 
             struct timespec start, stop;
-            // clock_t begin = clock();
+            // start clock
             clock_gettime( CLOCK_MONOTONIC, &start);
 
+            //INITIALIZE THREADS
             for(int k = 0; k < nthreads_consumer[i]; k++)
                 pthread_create(&consumers[k],NULL,consumer,NULL);
             for(int k = 0; k < nthreads_producer[i]; k++)
@@ -123,11 +126,12 @@ int main(int argc, char *argv[]){
             sem_destroy(&consumer_count); 
             sem_destroy(&producer_count); 
             sem_destroy(&empty);
-            // clock_t end = clock();
+            // stop clock
             clock_gettime( CLOCK_MONOTONIC, &stop);
             double time_spent = ( stop.tv_sec - start.tv_sec ) + (( stop.tv_nsec - start.tv_nsec ) / BILLION);
             total_time += time_spent;
         }
+        //print avg time
         printf("%lf\n", total_time/10);
     }
     return 0; 
